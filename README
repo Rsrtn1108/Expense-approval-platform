@@ -1,1 +1,53 @@
+# Expense request platform
 
+## Overview
+This is a backend system that allows employees to submit expense claims which are reviewd and apporved or rejected by manager, with full audit logging and role based access control. 
+
+## Key features
+expense submission and approval workflow
+role based access control (employee, manager, finance)
+secure REST API
+audit logging of approval actions
+PostgreSQL-backed persistance
+create expense reports
+
+## Tech stack
+java 17
+spring boot
+spring data JPA (hibernate)
+spring security
+postgreSQL
+flyway
+Docker and docker compose
+
+## System architecture
+
+## Expense workflow
+-draft
+this state is for when the employee is currently writing up the request
+-submitted
+this state is for after it has been submitted and it was waiting for a decision from managment
+-approved
+this state is for when the request has been approved by management, this state is also when finance user can view it
+-rejected 
+this state is for when the request has been rejected by managment, this state is also when finance users can view it
+
+## Role based access control
+-Employee
+can create and submit expense requests
+-manager
+can approve/ reject expense requests
+-finance
+can view all processed expense requests and make reports
+
+## Database design
+
+## API documentation
+
+## Running the application locally
+
+## Project structure
+
+## Security considerations
+
+## Future improvements
