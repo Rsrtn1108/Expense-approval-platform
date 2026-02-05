@@ -95,4 +95,37 @@ public class Expense {
     public Instant getUpdatedAt() {
         return updatedAt;
     }
+
+    public void approve() {
+        if (status != ExpenseStatus.SUBMITTED) {
+            throw new IllegalStateException("Only submitted expenses can be approved");
+        }
+        this.status = ExpenseStatus.APPROVED;
+    }
+
+    public void reject() {
+        if (status != ExpenseStatus.SUBMITTED) {
+            throw new IllegalStateException("Only submitted expenses can be rejected");
+        }
+        this.status = ExpenseStatus.REJECTED;
+    }
+
+    public void updateDetails(BigDecimal amount, String description) {
+
+        if (status != ExpenseStatus.SUBMITTED) {
+            throw new IllegalStateException("Only submitted expenses can be edited");
+        }
+
+        if (amount == null || amount.signum() <= 0) {
+            throw new IllegalArgumentException("Amount must be positive");
+        }
+
+        if (description == null || description.isBlank()) {
+            throw new IllegalArgumentException("Description is required");
+        }
+
+        this.amount = amount;
+        this.description = description;
+    }
+
 }
