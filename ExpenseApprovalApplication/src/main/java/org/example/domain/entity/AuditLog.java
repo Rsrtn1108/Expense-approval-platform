@@ -19,8 +19,8 @@ public class AuditLog {
     @Column(name = "id", nullable = false)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "expense_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "expense_id")
     private Expense expense;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

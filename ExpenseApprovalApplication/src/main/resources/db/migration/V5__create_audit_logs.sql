@@ -1,6 +1,6 @@
 CREATE TABLE audit_logs (
     id UUID PRIMARY KEY,
-    expense_id UUID NOT NULL,
+    expense_id UUID,
     performed_by UUID NOT NULL,
     action VARCHAR(100) NOT NULL,
     comment TEXT,
