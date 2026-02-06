@@ -6,21 +6,30 @@ This is a backend system that allows employees to submit expense claims which ar
 ## Key features
 expense submission and approval workflow
 role based access control (employee, manager, finance)
-secure REST API
-audit logging of approval actions
-PostgreSQL-backed persistance
-create expense reports
+edit expenses (submitter only)
+full audit logging of all actions
+database migration via flyway
+transactional business logic
 
 ## Tech stack
 java 17
-spring boot
+spring boot 3
 spring data JPA (hibernate)
 spring security
 postgreSQL
 flyway
-Docker and docker compose
+Docker and docker compose (for local database)
 
 ## System architecture
+Client (HTTP)
+↓
+Controller layer (REST API)
+↓
+Service layer (Business logic)
+↓
+Repository layer(persistence)
+↓
+PostgreSQL database
 
 ## Expense workflow
 -draft
@@ -41,13 +50,36 @@ can approve/ reject expense requests
 can view all processed expense requests and make reports
 
 ## Database design
-
-## API documentation
-
-## Running the application locally
+tables:
+-Users
+-Expenses
+-ExpenseStatus
+-roles
+-audit logs
 
 ## Project structure
+src/main/java/org.example
+├── config 
+├── domain
+│ ├── entity # JPA entities
+│ ├── enums # Domain enums 
+│ ├── repository # Spring Data JPA repositories
+│ └── service # Business logic
+├── web
+│ ├── controller # REST controllers
+│ └── dto
+│ └── request # Request DTOs
+└── Main.java # Application entry point
 
 ## Security considerations
+- SQL injection prevention
+- role based access control
+- input validation
+- transaction safety
+- audit loggin
 
 ## Future improvements
+- Generate expense reports
+- Query endpoints
+- audit log read API
+- intergration testing
