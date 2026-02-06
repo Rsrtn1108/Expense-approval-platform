@@ -12,7 +12,7 @@ database migration via flyway
 transactional business logic
 
 ## Tech stack
-java 17
+java 21
 spring boot 3
 spring data JPA (hibernate)
 spring security
@@ -92,3 +92,4 @@ src/main/java/org.example
 - Query endpoints
 - audit log read API
 - intergration testing
+- 
