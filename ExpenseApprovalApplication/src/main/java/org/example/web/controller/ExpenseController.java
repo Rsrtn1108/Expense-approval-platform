@@ -91,7 +91,7 @@ public class ExpenseController {
     }
 
     @GetMapping("/{viewerUserId}/getAllRejected")
-    public List<Expense> getAllRejectedExpenses(@PathVariable UUID userId) throws AccessDeniedException {
-        return expenseService.getRejectedExpenses(userId);
+    public List<Expense> getAllRejectedExpenses(@PathVariable UUID viewerUserId) throws AccessDeniedException {
+        return expenseService.getRejectedExpenses(viewerUserId);
     }
 }

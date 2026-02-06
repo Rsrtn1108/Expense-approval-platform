@@ -7,6 +7,7 @@ import org.example.domain.enums.ExpenseStatus;
 import org.example.domain.repository.AuditLogRepository;
 import org.example.domain.repository.ExpenseRepository;
 import org.example.domain.repository.UserRepository;
+import org.example.domain.service.audit.AuditLogService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,12 +23,12 @@ public class ExpenseService {
 
     private final ExpenseRepository expenseRepository;
     private final UserRepository userRepository;
-    private final AuditLogRepository auditLogRepository;
+    private final AuditLogService auditLogService;
 
-    public ExpenseService(ExpenseRepository expenseRepository, UserRepository userRepository, AuditLogRepository auditLogRepository){
+    public ExpenseService(ExpenseRepository expenseRepository, UserRepository userRepository, AuditLogService auditLogService) {
         this.expenseRepository = expenseRepository;
         this.userRepository = userRepository;
-        this.auditLogRepository = auditLogRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
@@ -58,17 +59,7 @@ public class ExpenseService {
         expenseRepository.save(expense);
 
         //generate log of action
-        AuditLog auditLog = new AuditLog(
-                UUID.randomUUID(),
-                expense,
-                submitter,
-                "SUBMITTED",
-                null,
-                Instant.now()
-        );
-
-        //save the log to DB
-        auditLogRepository.save(auditLog);
+        auditLogService.logAction(expense, submitter, "SUBMITTED", null);
 
         //return expense
         return expense;
@@ -90,17 +81,7 @@ public class ExpenseService {
         expense.approve();
 
         //generate log of action
-        AuditLog auditLog = new AuditLog(
-                UUID.randomUUID(),
-                expense,
-                approver,
-                "APPROVED",
-                comment,
-                Instant.now()
-        );
-
-        //save log
-        auditLogRepository.save(auditLog);
+        auditLogService.logAction(expense, approver, "APPROVED EXPENSE", null);
 
         //return expense
         return expense;
@@ -122,17 +103,7 @@ public class ExpenseService {
         expense.reject();
 
         //generate log of action
-        AuditLog auditLog = new AuditLog(
-                UUID.randomUUID(),
-                expense,
-                rejector,
-                "REJECTED",
-                comment,
-                Instant.now()
-        );
-
-        //save log
-        auditLogRepository.save(auditLog);
+        auditLogService.logAction(expense, rejector, "REJECTED EXPENSE", null);
 
         //return expense
         return expense;
@@ -155,23 +126,13 @@ public class ExpenseService {
         expense.updateDetails(newAmount, newDesc);
 
         //log the action
-        AuditLog auditLog = new AuditLog(
-                UUID.randomUUID(),
-                expense,
-                editor,
-                "UPDATED",
-                null,
-                Instant.now()
-        );
-
-        //save log
-        auditLogRepository.save(auditLog);
+        auditLogService.logAction(expense, editor, "UPDATED EXPENSE", null);
 
         //return expense
         return expense;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Expense getExpenseById(UUID expenseId, UUID userId) throws AccessDeniedException {
         //load expense and user
         Expense expense = expenseRepository.findById(expenseId).orElseThrow(()-> new IllegalArgumentException("Expense not found"));
@@ -186,23 +147,13 @@ public class ExpenseService {
         }
 
         // log action
-        AuditLog auditLog = new AuditLog(
-                UUID.randomUUID(),
-                expense,
-                finder,
-                "VIEWED",
-                null,
-                Instant.now()
-        );
-
-        //save log
-        auditLogRepository.save(auditLog);
+        auditLogService.logAction(expense, finder, "VIEWED EXPENSE", null);
 
         //return expense
         return expense;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<Expense> getExpenseByUser(UUID userID, UUID finderID) throws AccessDeniedException {
 
         //load user id
@@ -218,24 +169,14 @@ public class ExpenseService {
             throw new AccessDeniedException("You do not have permission to view this Users expenses");
         }
 
-        //audit logging
-        AuditLog auditLog = new AuditLog(
-                UUID.randomUUID(),
-                null,
-                finder,
-                "VIEWED USERS EXPENSES",
-                null,
-                Instant.now()
-        );
-
-        //save log
-        auditLogRepository.save(auditLog);
+        //log action
+        auditLogService.logAction(null, finder, "VIEWED USER:"+user.getId()+"'s expenses", null);
 
         // return list
         return expenseRepository.findBySubmittedBy(user);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<Expense> getAllExpenses(UUID finderId) throws AccessDeniedException {
         //load user ID
         User finder = userRepository.findById(finderId).orElseThrow(()-> new IllegalArgumentException("User not found"));
@@ -244,28 +185,18 @@ public class ExpenseService {
         boolean isManager = finder.getRole().getName().equals("Manager");
         boolean isFinance = finder.getRole().getName().equals("Finance");
 
-        if(isManager && !isFinance){
+        if(!isManager && !isFinance){
             throw new AccessDeniedException("You do not have permission to view all expenses");
         }
 
         //audit logging
-        AuditLog auditLog = new AuditLog(
-                UUID.randomUUID(),
-                null,
-                finder,
-                "VIEWED ALL EXPENSES",
-                null,
-                Instant.now()
-        );
-
-        //save log
-        auditLogRepository.save(auditLog);
+        auditLogService.logAction(null, finder, "VIEWED ALL EXPENSES", null);
 
         //return expenses
         return expenseRepository.findAll();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<Expense> getPendingExpenses(UUID userID) throws AccessDeniedException {
         //load user ID
         User user = userRepository.findById(userID).orElseThrow(()-> new IllegalArgumentException("User not found"));
@@ -279,22 +210,12 @@ public class ExpenseService {
         }
 
         //audit logging
-        AuditLog auditLog = new AuditLog(
-                UUID.randomUUID(),
-                null,
-                user,
-                "VIEWED PENDING EXPENSES",
-                null,
-                Instant.now()
-        );
-
-        //save log
-        auditLogRepository.save(auditLog);
+        auditLogService.logAction(null, user, "VIEWED PENDING EXPENSES", null);
 
         return expenseRepository.findByStatus(ExpenseStatus.SUBMITTED);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<Expense> getApprovedExpenses(UUID userID) throws AccessDeniedException {
         //load user ID
         User user = userRepository.findById(userID).orElseThrow(()-> new IllegalArgumentException("User not found"));
@@ -308,22 +229,12 @@ public class ExpenseService {
         }
 
         //audit logging
-        AuditLog auditLog = new AuditLog(
-                UUID.randomUUID(),
-                null,
-                user,
-                "VIEWED APPROVED EXPENSES",
-                null,
-                Instant.now()
-        );
-
-        //save log
-        auditLogRepository.save(auditLog);
+        auditLogService.logAction(null, user, "VIEWED APPROVED EXPENSES", null);
 
         return expenseRepository.findByStatus(ExpenseStatus.APPROVED);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<Expense> getRejectedExpenses(UUID userID) throws AccessDeniedException {
         //load user ID
         User user = userRepository.findById(userID).orElseThrow(()-> new IllegalArgumentException("User not found"));
@@ -336,18 +247,8 @@ public class ExpenseService {
             throw new AccessDeniedException("You do not have permission to view rejected expenses");
         }
 
-        //audit logging
-        AuditLog auditLog = new AuditLog(
-                UUID.randomUUID(),
-                null,
-                user,
-                "VIEWED REJECTED EXPENSES",
-                null,
-                Instant.now()
-        );
-
-        //save log
-        auditLogRepository.save(auditLog);
+        //log the action
+        auditLogService.logAction(null, user, "VIEWED REJECTED EXPENSES", null);
 
         return expenseRepository.findByStatus(ExpenseStatus.REJECTED);
     }
