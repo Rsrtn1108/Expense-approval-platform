@@ -20,7 +20,7 @@ postgreSQL
 flyway
 Docker and docker compose (for local database)
 
-## running this locally locally
+## running this project locally
 
 This project uses an `application.yml` file for environment-specific configuration.
 
