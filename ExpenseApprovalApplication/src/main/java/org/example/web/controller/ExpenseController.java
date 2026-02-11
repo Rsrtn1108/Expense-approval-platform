@@ -1,6 +1,5 @@
 package org.example.web.controller;
 
-import org.example.domain.entity.Expense;
 import org.example.domain.service.expense.ExpenseService;
 import org.example.web.dto.request.*;
 import org.example.web.dto.response.ExpenseResponse;
@@ -62,13 +61,13 @@ public class ExpenseController {
         );
     }
 
-    @GetMapping("/expenses/{expenseId}")
+    @GetMapping("/{expenseId}")
     public ExpenseResponse getExpense(@PathVariable UUID expenseId, @RequestParam UUID userId) throws AccessDeniedException{
 
         return expenseService.getExpenseById(expenseId, userId);
     }
 
-    @GetMapping("/expenses/{userId}")
+    @GetMapping("/userExpenses/{userId}")
     public List<ExpenseResponse> getExpenses(@PathVariable UUID userId, @RequestParam UUID finderID) throws AccessDeniedException {
 
         return expenseService.getExpenseByUser(userId, finderID);
