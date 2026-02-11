@@ -1,15 +1,15 @@
 package org.example.domain.service.expense;
 
-import org.example.domain.entity.AuditLog;
 import org.example.domain.entity.Expense;
 import org.example.domain.entity.User;
 import org.example.domain.enums.ExpenseStatus;
-import org.example.domain.repository.AuditLogRepository;
 import org.example.domain.repository.ExpenseRepository;
 import org.example.domain.repository.UserRepository;
 import org.example.domain.service.audit.AuditLogService;
+import org.example.web.dto.response.ExpenseResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.example.web.mapper.ExpenseMapper;
 
 import java.math.BigDecimal;
 import java.nio.file.AccessDeniedException;
@@ -24,15 +24,17 @@ public class ExpenseService {
     private final ExpenseRepository expenseRepository;
     private final UserRepository userRepository;
     private final AuditLogService auditLogService;
+    private final ExpenseMapper expenseMapper;
 
-    public ExpenseService(ExpenseRepository expenseRepository, UserRepository userRepository, AuditLogService auditLogService) {
+    public ExpenseService(ExpenseRepository expenseRepository, UserRepository userRepository, AuditLogService auditLogService, ExpenseMapper expenseMapper) {
         this.expenseRepository = expenseRepository;
         this.userRepository = userRepository;
         this.auditLogService = auditLogService;
+        this.expenseMapper = expenseMapper;
     }
 
     @Transactional
-    public Expense submitExpense(UUID userID, BigDecimal amount, String description){
+    public ExpenseResponse submitExpense(UUID userID, BigDecimal amount, String description){
 
         //load user that submitted expense
         User submitter = userRepository.findById(userID).orElseThrow(()-> new IllegalArgumentException("User not found"));
@@ -62,11 +64,11 @@ public class ExpenseService {
         auditLogService.logAction(expense, submitter, "SUBMITTED", null);
 
         //return expense
-        return expense;
+        return expenseMapper.mapToResponse(expense);
     }
 
     @Transactional
-    public Expense approveExpense(UUID expenseID, UUID userID, String comment) throws AccessDeniedException {
+    public ExpenseResponse approveExpense(UUID expenseID, UUID userID, String comment) throws AccessDeniedException {
 
         //load expense and approval user
         Expense expense = expenseRepository.findById(expenseID).orElseThrow(()-> new IllegalArgumentException("Expense not found"));
@@ -84,11 +86,11 @@ public class ExpenseService {
         auditLogService.logAction(expense, approver, "APPROVED EXPENSE", null);
 
         //return expense
-        return expense;
+        return expenseMapper.mapToResponse(expense);
     }
 
     @Transactional
-    public Expense rejectExpense (UUID expenseID, UUID userID, String comment) throws AccessDeniedException {
+    public ExpenseResponse rejectExpense (UUID expenseID, UUID userID, String comment) throws AccessDeniedException {
 
         //load expense and user
         Expense expense = expenseRepository.findById(expenseID).orElseThrow(()-> new IllegalArgumentException("Expense not found"));
@@ -106,11 +108,11 @@ public class ExpenseService {
         auditLogService.logAction(expense, rejector, "REJECTED EXPENSE", null);
 
         //return expense
-        return expense;
+        return expenseMapper.mapToResponse(expense);
     }
 
     @Transactional
-    public Expense editExpense(UUID expenseID, UUID userID, BigDecimal newAmount, String newDesc) throws AccessDeniedException {
+    public ExpenseResponse editExpense(UUID expenseID, UUID userID, BigDecimal newAmount, String newDesc) throws AccessDeniedException {
 
         //load expense and user
         Expense expense = expenseRepository.findById(expenseID).orElseThrow(()-> new IllegalArgumentException("Expense not found"));
@@ -129,11 +131,11 @@ public class ExpenseService {
         auditLogService.logAction(expense, editor, "UPDATED EXPENSE", null);
 
         //return expense
-        return expense;
+        return expenseMapper.mapToResponse(expense);
     }
 
     @Transactional(readOnly = true)
-    public Expense getExpenseById(UUID expenseId, UUID userId) throws AccessDeniedException {
+    public ExpenseResponse getExpenseById(UUID expenseId, UUID userId) throws AccessDeniedException {
         //load expense and user
         Expense expense = expenseRepository.findById(expenseId).orElseThrow(()-> new IllegalArgumentException("Expense not found"));
         User finder = userRepository.findById(userId).orElseThrow(()-> new IllegalArgumentException("User not found"));
@@ -150,11 +152,11 @@ public class ExpenseService {
         auditLogService.logAction(expense, finder, "VIEWED EXPENSE", null);
 
         //return expense
-        return expense;
+        return expenseMapper.mapToResponse(expense);
     }
 
     @Transactional(readOnly = true)
-    public List<Expense> getExpenseByUser(UUID userID, UUID finderID) throws AccessDeniedException {
+    public List<ExpenseResponse> getExpenseByUser(UUID userID, UUID finderID) throws AccessDeniedException {
 
         //load user id
         User user = userRepository.findById(userID).orElseThrow(()-> new IllegalArgumentException("User not found"));
@@ -169,15 +171,21 @@ public class ExpenseService {
             throw new AccessDeniedException("You do not have permission to view this Users expenses");
         }
 
+        //populate list
+        List<Expense> expenses = expenseRepository.findBySubmittedBy(user);
+
         //log action
         auditLogService.logAction(null, finder, "VIEWED USER:"+user.getId()+"'s expenses", null);
 
         // return list
-        return expenseRepository.findBySubmittedBy(user);
+        return expenses.stream()
+                .map(expenseMapper::mapToResponse)
+                .toList();
+
     }
 
     @Transactional(readOnly = true)
-    public List<Expense> getAllExpenses(UUID finderId) throws AccessDeniedException {
+    public List<ExpenseResponse> getAllExpenses(UUID finderId) throws AccessDeniedException {
         //load user ID
         User finder = userRepository.findById(finderId).orElseThrow(()-> new IllegalArgumentException("User not found"));
 
@@ -189,15 +197,21 @@ public class ExpenseService {
             throw new AccessDeniedException("You do not have permission to view all expenses");
         }
 
+        //populate list
+        List<Expense> expenses = expenseRepository.findBySubmittedBy(finder);
+
         //audit logging
         auditLogService.logAction(null, finder, "VIEWED ALL EXPENSES", null);
 
         //return expenses
-        return expenseRepository.findAll();
+        return expenses.stream()
+                .map(expenseMapper::mapToResponse)
+                .toList();
+
     }
 
     @Transactional(readOnly = true)
-    public List<Expense> getPendingExpenses(UUID userID) throws AccessDeniedException {
+    public List<ExpenseResponse> getPendingExpenses(UUID userID) throws AccessDeniedException {
         //load user ID
         User user = userRepository.findById(userID).orElseThrow(()-> new IllegalArgumentException("User not found"));
 
@@ -209,14 +223,21 @@ public class ExpenseService {
             throw new AccessDeniedException("You do not have permission to view pending expenses");
         }
 
+        //populate list
+        List<Expense> expenses = expenseRepository.findByStatus(ExpenseStatus.SUBMITTED);
+
         //audit logging
         auditLogService.logAction(null, user, "VIEWED PENDING EXPENSES", null);
 
-        return expenseRepository.findByStatus(ExpenseStatus.SUBMITTED);
+        //return statement
+        return expenses.stream()
+                .map(expenseMapper::mapToResponse)
+                .toList();
+
     }
 
     @Transactional(readOnly = true)
-    public List<Expense> getApprovedExpenses(UUID userID) throws AccessDeniedException {
+    public List<ExpenseResponse> getApprovedExpenses(UUID userID) throws AccessDeniedException {
         //load user ID
         User user = userRepository.findById(userID).orElseThrow(()-> new IllegalArgumentException("User not found"));
 
@@ -228,14 +249,19 @@ public class ExpenseService {
             throw new AccessDeniedException("You do not have permission to view approved expenses");
         }
 
+        //populate list
+        List<Expense> expenses = expenseRepository.findByStatus(ExpenseStatus.APPROVED);
+
         //audit logging
         auditLogService.logAction(null, user, "VIEWED APPROVED EXPENSES", null);
 
-        return expenseRepository.findByStatus(ExpenseStatus.APPROVED);
+        return expenses.stream()
+                .map(expenseMapper::mapToResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<Expense> getRejectedExpenses(UUID userID) throws AccessDeniedException {
+    public List<ExpenseResponse> getRejectedExpenses(UUID userID) throws AccessDeniedException {
         //load user ID
         User user = userRepository.findById(userID).orElseThrow(()-> new IllegalArgumentException("User not found"));
 
@@ -247,10 +273,15 @@ public class ExpenseService {
             throw new AccessDeniedException("You do not have permission to view rejected expenses");
         }
 
+        //populate list
+        List<Expense> expenses = expenseRepository.findByStatus(ExpenseStatus.REJECTED);
+
         //log the action
         auditLogService.logAction(null, user, "VIEWED REJECTED EXPENSES", null);
 
-        return expenseRepository.findByStatus(ExpenseStatus.REJECTED);
-    }
+        return expenses.stream()
+                .map(expenseMapper::mapToResponse)
+                .toList();
 
+    }
 }
