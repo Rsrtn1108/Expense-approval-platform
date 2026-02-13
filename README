@@ -70,15 +70,15 @@ tables:
 src/main/java/org.example
 ├── config 
 ├── domain
-│ ├── entity # JPA entities
-│ ├── enums # Domain enums 
-│ ├── repository # Spring Data JPA repositories
-│ └── service # Business logic
+│ ├── entity
+│ ├── enums  
+│ ├── repository
+│ └── service
 ├── web
-│ ├── controller # REST controllers
+│ ├── controller
 │ └── dto
-│ └── request # Request DTOs
-└── Main.java # Application entry point
+│ └── request
+└── Main.java
 
 ## Security considerations
 - SQL injection prevention
@@ -89,7 +89,6 @@ src/main/java/org.example
 
 ## Future improvements
 - Generate expense reports
-- Query endpoints
-- audit log read API
+- audit log endpoints
 - intergration testing
-- 
+- authentication
