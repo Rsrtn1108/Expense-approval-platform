@@ -83,7 +83,7 @@ src/main/java/org.example
 - role based access control
 - input validation
 - transaction safety
-- audit loggin
+- audit logging
 
 ## Future improvements
 - Generate expense reports
