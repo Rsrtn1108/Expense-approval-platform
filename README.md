@@ -4,21 +4,21 @@
 This is a backend system that allows employees to submit expense claims which are reviewd and apporved or rejected by manager, with full audit logging and role based access control. 
 
 ## Key features
-expense submission and approval workflow
-role based access control (employee, manager, finance)
-edit expenses (submitter only)
-full audit logging of all actions
-database migration via flyway
-transactional business logic
+- expense submission and approval workflow
+- role based access control (employee, manager, finance)
+- edit expenses (submitter only)
+- full audit logging of all actions
+- database migration via flyway
+- transactional business logic
 
 ## Tech stack
-java 21
-spring boot 3
-spring data JPA (hibernate)
-spring security
-postgreSQL
-flyway
-Docker and docker compose (for local database)
+- java 21
+- spring boot 3
+- spring data JPA (hibernate)
+- spring security
+- postgreSQL
+- flyway
+- Docker and docker compose (for local database)
 
 ## running this project locally
 
@@ -28,55 +28,55 @@ An example configuration is provided here:
 src/main/resources/application-example.yml
 
 ## System architecture
-Client (HTTP)
+- Client (HTTP)  
 ↓
-Controller layer (REST API)
+- Controller layer (REST API)  
 ↓
-Service layer (Business logic)
+- Service layer (Business logic)  
 ↓
-Repository layer(persistence)
+- Repository layer(persistence)  
 ↓
-PostgreSQL database
+- PostgreSQL database  
 
 ## Expense workflow
--draft
-this state is for when the employee is currently writing up the request
--submitted
-this state is for after it has been submitted and it was waiting for a decision from managment
--approved
-this state is for when the request has been approved by management, this state is also when finance user can view it
--rejected 
-this state is for when the request has been rejected by managment, this state is also when finance users can view it
+**draft**  
+this state is for when the employee is currently writing up the request  
+**submitted**  
+this state is for after it has been submitted and it was waiting for a decision from managment  
+**approved**  
+this state is for when the request has been approved by management, this state is also when finance user can view it  
+**rejected**  
+this state is for when the request has been rejected by managment, this state is also when finance users can view it  
 
 ## Role based access control
--Employee
+**Employee**
 can create and submit expense requests
--manager
+**manager**
 can approve/ reject expense requests
--finance
+**finance**
 can view all processed expense requests and make reports
 
 ## Database design
 tables:
--Users
--Expenses
--ExpenseStatus
--roles
--audit logs
+- Users
+- Expenses
+- ExpenseStatus
+- roles
+- audit logs
 
 ## Project structure
-src/main/java/org.example
-├── config 
-├── domain
-│ ├── entity
+src/main/java/org.example  
+├── config  
+├── domain  
+│ ├── entity  
 │ ├── enums  
-│ ├── repository
-│ └── service
-├── web
-│ ├── controller
-│ └── dto
-│ └── request
-└── Main.java
+│ ├── repository  
+│ └── service  
+├── web  
+│ ├── controller  
+│ └── dto  
+│ └── request  
+└── Main.java  
 
 ## Security considerations
 - SQL injection prevention
