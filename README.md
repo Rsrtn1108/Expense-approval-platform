@@ -1,92 +1,182 @@
-# Expense request platform
+# Expense Request Platform
 
 ## Overview
-This is a backend system that allows employees to submit expense claims which are reviewd and apporved or rejected by manager, with full audit logging and role based access control. 
 
-## Key features
-- expense submission and approval workflow
-- role based access control (employee, manager, finance)
-- edit expenses (submitter only)
-- full audit logging of all actions
-- database migration via flyway
-- transactional business logic
+A backend system that allows employees to submit expense claims which are reviewed and approved or rejected by managers.  
+The platform implements role-based access control and full audit logging to ensure accountability and traceability of all actions.
 
-## Tech stack
-- java 21
-- spring boot 3
-- spring data JPA (hibernate)
-- spring security
-- postgreSQL
-- flyway
-- Docker and docker compose (for local database)
+The system demonstrates backend concepts such as REST API design, transactional business logic, workflow management, and database-driven applications.
 
-## running this project locally
+---
+
+## Key Features
+
+- Expense submission and approval workflow
+- Role-based access control (Employee, Manager, Finance)
+- Expense editing (submitter only)
+- Full audit logging of all actions
+- Database version control using Flyway
+- Transactional business logic to ensure workflow consistency
+
+---
+
+## Tech Stack
+
+- **Java 21**
+- **Spring Boot 3**
+- **Spring Data JPA (Hibernate)**
+- **Spring Security**
+- **PostgreSQL**
+- **Flyway**
+- **Docker & Docker Compose** (for running the database locally)
+
+---
+
+## Running the Project Locally
 
 This project uses an `application.yml` file for environment-specific configuration.
 
-An example configuration is provided here:
+An example configuration file is provided here:
+
 src/main/resources/application-example.yml
 
-## System architecture
-- Client (HTTP)  
-↓
-- Controller layer (REST API)  
-↓
-- Service layer (Business logic)  
-↓
-- Repository layer(persistence)  
-↓
-- PostgreSQL database  
+Steps to run the project:
 
-## Expense workflow
-**draft**  
-this state is for when the employee is currently writing up the request  
-**submitted**  
-this state is for after it has been submitted and it was waiting for a decision from managment  
-**approved**  
-this state is for when the request has been approved by management, this state is also when finance user can view it  
-**rejected**  
-this state is for when the request has been rejected by managment, this state is also when finance users can view it  
+1. Clone the repository
+2. Configure your `application.yml`
+3. Start the PostgreSQL database using Docker Compose
+4. Run the Spring Boot application
 
-## Role based access control
+---
+
+## System Architecture
+
+The application follows a layered backend architecture.
+
+Client (HTTP)  
+↓  
+Controller Layer (REST API)  
+↓  
+Service Layer (Business Logic)  
+↓  
+Repository Layer (Persistence)  
+↓  
+PostgreSQL Database  
+
+This separation ensures clear responsibility between API handling, business logic, and data persistence.
+
+---
+
+## Expense Workflow
+
+**Draft**  
+The employee is preparing an expense request but has not submitted it yet.
+
+**Submitted**  
+The expense request has been submitted and is awaiting review from management.
+
+**Approved**  
+The request has been approved by a manager. Finance users can now view and process it.
+
+**Rejected**  
+The request has been rejected by management. Finance users can still view the record for reporting purposes.
+
+---
+
+## Role-Based Access Control
+
 **Employee**
-can create and submit expense requests
-**manager**
-can approve/ reject expense requests
-**finance**
-can view all processed expense requests and make reports
 
-## Database design
-tables:
-- Users
-- Expenses
-- ExpenseStatus
-- roles
-- audit logs
+- Create expense requests
+- Edit their own requests
+- Submit expenses for approval
 
-## Project structure
+**Manager**
+
+- Review submitted expenses
+- Approve or reject expense requests
+
+**Finance**
+
+- View all processed expense requests
+- Generate financial reports (future feature)
+
+---
+
+## Example API Endpoints
+
+POST /expenses  
+Create a new expense request  
+
+PUT /expenses/{id}/submit  
+Submit an expense for approval  
+
+PUT /expenses/{id}/approve  
+Approve an expense request  
+
+PUT /expenses/{id}/reject  
+Reject an expense request  
+
+GET /expenses  
+Retrieve expense requests  
+
+---
+
+## Database Design
+
+Key tables include:
+
+- **users** – application users with assigned roles
+- **expenses** – submitted expense claims
+- **expense_status** – tracks the workflow state of each expense
+- **roles** – defines system permissions
+- **audit_logs** – records system actions for traceability
+
+---
+
+## Project Structure
+
 src/main/java/org.example  
-├── config  
-├── domain  
-│ ├── entity  
-│ ├── enums  
-│ ├── repository  
-│ └── service  
-├── web  
-│ ├── controller  
-│ └── dto  
-│ └── request  
-└── Main.java  
 
-## Security considerations
-- SQL injection prevention
-- role based access control
-- input validation
-- transaction safety
-- audit logging
+config  
 
-## Future improvements
+domain  
+├── entity  
+├── enums  
+├── repository  
+└── service  
+
+web  
+├── controller  
+├── dto  
+└── request  
+
+Main.java  
+
+---
+
+## Security Considerations
+
+- Role-based access control using Spring Security
+- Input validation to prevent malformed requests
+- Protection against SQL injection via JPA and prepared queries
+- Transactional operations to maintain workflow integrity
+- Full audit logging of system actions
+
+---
+
+## Design Decisions
+
+- **Flyway** is used to manage version-controlled database migrations.
+- **Spring Security** enforces role-based access control across the API.
+- **Transactional service methods** ensure that approval workflows remain consistent even if failures occur.
+
+---
+
+## Future Improvements
+
 - Generate expense reports
-- audit log endpoints
-- intergration testing
-- authentication
+- Add audit log API endpoints
+- Implement integration testing
+- Add authentication for user login
+- Introduce API documentation (Swagger/OpenAPI)
