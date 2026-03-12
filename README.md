@@ -24,9 +24,7 @@ Docker and docker compose (for local database)
 
 This project uses an `application.yml` file for environment-specific configuration.
 
-An example configuration is provided:
-
-```bash
+An example configuration is provided here:
 src/main/resources/application-example.yml
 
 ## System architecture
